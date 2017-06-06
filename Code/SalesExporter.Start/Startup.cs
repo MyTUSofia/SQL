@@ -1,10 +1,12 @@
 ﻿using SalesExporter.Data;
 using SalesExporter.Data.Migrations;
 using SalesExporter.ExcelExporter;
+using SalesExporter.Models.Composition;
 using SalesExporter.Models.Db;
 using System;
 using System.Collections.Generic;
 using System.Data.Entity;
+using System.Linq;
 
 namespace SalesExporter.Start
 {
@@ -12,13 +14,28 @@ namespace SalesExporter.Start
     {
         static void Main()
         {
-            var list = new List<Product>() { new Product() { Name = "123" }, new Product() { Name = "789" }, new Product() { Name = "456" } };
-            Exporter.ExportEntries(list);
+            //var list = new List<Product>() { new Product() { Name = "123" }, new Product() { Name = "789" }, new Product() { Name = "456" } };
+            //Exporter.ExportEntries(list);
 
-            //Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
 
-            //var db = new SalesExporterDbContext();
-            //db.Database.CreateIfNotExists();
+            var db = new SalesExporterDbContext();
+            db.Database.CreateIfNotExists();
+
+            var exportItems = new List<SaleExport>();
+
+            db.Sale.ToList().ForEach(s =>
+            {
+                exportItems.Add(new SaleExport()
+                {
+                    ClientName = s.Client.Name,
+                    ExportedOn = DateTime.UtcNow,
+                    ProductsCount = s.SaleProducts.Count,
+                    TotalPrice = s.TotalPrice
+                });
+            });
+
+            Exporter.ExportEntries(exportItems);
 
             //var bigClient = new Client()
             //{
