@@ -1,6 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 
-namespace SalesExporter.Models
+namespace SalesExporter.Models.Db
 {
     public class SaleProduct
     {

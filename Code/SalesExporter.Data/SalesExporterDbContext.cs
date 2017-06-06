@@ -1,4 +1,4 @@
-﻿using SalesExporter.Models;
+﻿using SalesExporter.Models.Db;
 using System.Data.Entity;
 
 namespace SalesExporter.Data

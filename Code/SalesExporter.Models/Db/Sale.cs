@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
-namespace SalesExporter.Models
+namespace SalesExporter.Models.Db
 {
     public class Sale
     {
