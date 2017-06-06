@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace SalesExporter.Models
@@ -26,5 +27,9 @@ namespace SalesExporter.Models
             get { return this.products; }
             set { this.products = value; }
         }
+
+        public DateTime? ExportedOn { get; set; }
+
+        public bool IsExported { get; set; }
     }
 }
