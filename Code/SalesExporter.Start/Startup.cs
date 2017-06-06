@@ -1,5 +1,6 @@
 ﻿using SalesExporter.Data;
 using SalesExporter.Data.Migrations;
+using SalesExporter.ExcelExporter;
 using SalesExporter.Models;
 using System;
 using System.Collections.Generic;
@@ -11,44 +12,47 @@ namespace SalesExporter.Start
     {
         static void Main()
         {
-            Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
+            var list = new List<Product>() { new Product() { Name = "123" }, new Product() { Name = "789" }, new Product() { Name = "456" } };
+            Exporter.ExportEntries(list);
 
-            var db = new SalesExporterDbContext();
-            db.Database.CreateIfNotExists();
+            //Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
 
-            var bigClient = new Client()
-            {
-                Name = "Some big client"
-            };
+            //var db = new SalesExporterDbContext();
+            //db.Database.CreateIfNotExists();
 
-            var specialProduct = new Product()
-            {
-                Name = "Fancy something",
-                Price = 1M,
-                Quantity = 1000
-            };
+            //var bigClient = new Client()
+            //{
+            //    Name = "Some big client"
+            //};
 
-            var soldProduct = new SaleProduct()
-            {
-                Product = specialProduct,
-                Count = 2,
-                Price = 2M
-            };
+            //var specialProduct = new Product()
+            //{
+            //    Name = "Fancy something",
+            //    Price = 1M,
+            //    Quantity = 1000
+            //};
 
-            var firstSale = new Sale()
-            {
-                Client = bigClient,
-                SaleProducts = new List<SaleProduct>() { soldProduct },
-                TotalPrice = 2M
-            };
+            //var soldProduct = new SaleProduct()
+            //{
+            //    Product = specialProduct,
+            //    Count = 2,
+            //    Price = 2M
+            //};
 
-            db.Client.Add(bigClient);
-            db.Product.Add(specialProduct);
-            db.SaleProduct.Add(soldProduct);
-            db.Sale.Add(firstSale);
+            //var firstSale = new Sale()
+            //{
+            //    Client = bigClient,
+            //    SaleProducts = new List<SaleProduct>() { soldProduct },
+            //    TotalPrice = 2M
+            //};
 
-            Console.WriteLine("Db entities added successfully!");
-            db.SaveChanges();
+            //db.Client.Add(bigClient);
+            //db.Product.Add(specialProduct);
+            //db.SaleProduct.Add(soldProduct);
+            //db.Sale.Add(firstSale);
+
+            //Console.WriteLine("Db entities added successfully!");
+            //db.SaveChanges();
         }
     }
 }
