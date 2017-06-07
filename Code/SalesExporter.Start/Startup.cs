@@ -7,6 +7,8 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Timers;
+using System.Transactions;
 
 namespace SalesExporter.Start
 {
@@ -14,62 +16,121 @@ namespace SalesExporter.Start
     {
         static void Main()
         {
-            //var list = new List<Product>() { new Product() { Name = "123" }, new Product() { Name = "789" }, new Product() { Name = "456" } };
-            //Exporter.ExportEntries(list);
+            Timer t = new Timer(TimeSpan.FromSeconds(5).TotalMilliseconds);
+            t.AutoReset = true;
+            t.Elapsed += new ElapsedEventHandler(DelayedExport);
+            t.Start();
 
+            while (true)
+            {
+            }
+        }
+
+        public static void DelayedExport(object sender, ElapsedEventArgs e)
+        {
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
 
             var db = new SalesExporterDbContext();
             db.Database.CreateIfNotExists();
 
+            PrepareExport(db, null);
+        }
+
+        public static void PrepareExport(SalesExporterDbContext context, DateTime? exportDate)
+        {
             var exportItems = new List<SaleExport>();
 
-            db.Sale.ToList().ForEach(s =>
+            using (TransactionScope scope = new TransactionScope())
             {
-                exportItems.Add(new SaleExport()
+                IQueryable<Sale> filteredData = context.Sale.Where(s => s.IsExported == false);
+
+                if (exportDate != null)
                 {
-                    ClientName = s.Client.Name,
-                    ExportedOn = DateTime.UtcNow,
-                    ProductsCount = s.SaleProducts.Count,
-                    TotalPrice = s.TotalPrice
-                });
-            });
+                    filteredData = context.Sale.Where(s => DateTime.Compare((DateTime)s.ExportedOn, (DateTime)exportDate) >= 0);
+                }
 
-            Exporter.ExportEntries(exportItems);
+                filteredData
+                    .ToList()
+                    .ForEach(s =>
+                    {
+                        var dateNow = DateTime.UtcNow;
 
-            //var bigClient = new Client()
-            //{
-            //    Name = "Some big client"
-            //};
+                        exportItems.Add(new SaleExport
+                        {
+                            ClientName = s.Client.Name,
+                            ExportedOn = dateNow,
+                            ProductsCount = s.SaleProducts.Count,
+                            TotalPrice = s.TotalPrice
+                        });
 
-            //var specialProduct = new Product()
-            //{
-            //    Name = "Fancy something",
-            //    Price = 1M,
-            //    Quantity = 1000
-            //};
+                        s.IsExported = true;
+                        s.ExportedOn = dateNow;
+                    });
 
-            //var soldProduct = new SaleProduct()
-            //{
-            //    Product = specialProduct,
-            //    Count = 2,
-            //    Price = 2M
-            //};
+                context.SaveChanges();
 
-            //var firstSale = new Sale()
-            //{
-            //    Client = bigClient,
-            //    SaleProducts = new List<SaleProduct>() { soldProduct },
-            //    TotalPrice = 2M
-            //};
+                try
+                {
+                    if (exportItems.Count > 0)
+                    {
+                        Exporter.ExportEntries(exportItems);
+                    }
+                    else
+                    {
+                        Console.WriteLine("There are no records which meets condition!");
+                    }
+                }
+                catch (Exception error)
+                {
+                    Console.WriteLine(error);
+                    return;
+                }
 
-            //db.Client.Add(bigClient);
-            //db.Product.Add(specialProduct);
-            //db.SaleProduct.Add(soldProduct);
-            //db.Sale.Add(firstSale);
 
-            //Console.WriteLine("Db entities added successfully!");
-            //db.SaveChanges();
+                scope.Complete();
+            }
+        }
+
+        public static void PopulateSomeData()
+        {
+            Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
+
+            var db = new SalesExporterDbContext();
+            db.Database.CreateIfNotExists();
+
+            var bigClient = new Client()
+            {
+                Name = "Some big client"
+            };
+
+            var specialProduct = new Product()
+            {
+                Name = "Fancy something",
+                Price = 1M,
+                Quantity = 1000
+            };
+
+            var soldProduct = new SaleProduct()
+            {
+                Product = specialProduct,
+                Count = 2,
+                Price = 2M
+            };
+
+            var firstSale = new Sale()
+            {
+                Client = bigClient,
+                SaleProducts = new List<SaleProduct>() { soldProduct },
+                TotalPrice = 2M
+            };
+
+            db.Client.Add(bigClient);
+            db.Product.Add(specialProduct);
+            db.SaleProduct.Add(soldProduct);
+            db.Sale.Add(firstSale);
+
+            Console.WriteLine("Db entities added successfully!");
+            db.SaveChanges();
         }
     }
 }
