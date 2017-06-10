@@ -1,5 +1,6 @@
 ﻿using NPOI.SS.UserModel;
 using NPOI.XSSF.UserModel;
+using SalesExporter.Models.Composition;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,17 +10,22 @@ namespace SalesExporter.ExcelExporter
 {
     public static class Exporter
     {
-        public static void ExportEntries<T>(IEnumerable<T> entries)
+        // Not very beautifiul but time is money :(
+        public static void ExportEntries(IEnumerable<SaleExport> entries)
         {
             IWorkbook workbook = new XSSFWorkbook();
             ISheet sheet1 = workbook.CreateSheet("Sheet1");
 
-            PropertyInfo[] properties = typeof(T).GetProperties();
-            string[] fields = new string[properties.Length];
+            PropertyInfo[] properties = typeof(SaleExport).GetProperties();
+            string[] fields = new string[(properties.Length - 1)];
 
             for (int i = 0; i < properties.Count(); i++)
             {
-                fields[i] = properties[i].Name.Replace("_", " ");
+                var name = properties[i].Name.Replace("_", " ");
+                if (name != "Products")
+                {
+                    fields[i] = name;
+                }
             }
 
             // Populate the first row
@@ -28,16 +34,29 @@ namespace SalesExporter.ExcelExporter
             {
                 row.CreateCell(i).SetCellValue(fields[i]);
             }
-            entries.ElementAt(0);
-            // Populate data from entries
-            for (int i = 0; i < entries.Count(); i++)
+
+            var currentRow = 1;
+            foreach (var entry in entries)
             {
-                IRow row2 = sheet1.CreateRow((i + 1));
+                IRow excelRow = sheet1.CreateRow(currentRow);
 
                 for (int j = 0; j < fields.Length; j++)
                 {
-                    row2.CreateCell(j).SetCellValue(properties[j].GetValue(entries.ElementAt(i), null).ToString());
+                    excelRow.CreateCell(j).SetCellValue(properties[j].GetValue(entry, null).ToString());
                 }
+                currentRow++;
+
+                foreach (var product in entry.Products)
+                {
+                    IRow productRow = sheet1.CreateRow(currentRow);
+
+                    productRow.CreateCell(0).SetCellValue("*");
+                    productRow.CreateCell(1).SetCellValue(product.Name);
+                    productRow.CreateCell(2).SetCellValue(product.Count);
+                    productRow.CreateCell(3).SetCellValue(product.Price.ToString());
+                    currentRow++;
+                }
+
             }
 
             FileStream sw = File.Create("test.xlsx");

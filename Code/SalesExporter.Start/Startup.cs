@@ -56,13 +56,24 @@ namespace SalesExporter.Start
                     .ForEach(s =>
                     {
                         var dateNow = DateTime.UtcNow;
+                        var listProducts = new List<ProductExport>();
+                        foreach(var product in s.SaleProducts)
+                        {
+                            listProducts.Add(new ProductExport
+                            {
+                                Count = product.Count,
+                                Name = product.Product.Name,
+                                Price = product.Price
+                            });
+                        }
 
                         exportItems.Add(new SaleExport
                         {
                             ClientName = s.Client.Name,
                             ExportedOn = dateNow,
                             ProductsCount = s.SaleProducts.Count,
-                            TotalPrice = s.TotalPrice
+                            TotalPrice = s.TotalPrice,
+                            Products = listProducts
                         });
 
                         s.IsExported = true;

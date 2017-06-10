@@ -55,6 +55,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Composition\ProductExport.cs" />
     <Compile Include="Composition\SaleExport.cs" />
     <Compile Include="Db\Client.cs" />
     <Compile Include="Db\Product.cs" />

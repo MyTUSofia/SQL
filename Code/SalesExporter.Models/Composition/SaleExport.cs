@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace SalesExporter.Models.Composition
 {
@@ -11,5 +12,7 @@ namespace SalesExporter.Models.Composition
         public decimal TotalPrice { get; set; }
 
         public int ProductsCount { get; set; }
+
+        public List<ProductExport> Products { get; set; }
     }
 }
