@@ -57,7 +57,7 @@ namespace SalesExporter.Start
                     {
                         var dateNow = DateTime.UtcNow;
                         var listProducts = new List<ProductExport>();
-                        foreach(var product in s.SaleProducts)
+                        foreach (var product in s.SaleProducts)
                         {
                             listProducts.Add(new ProductExport
                             {
@@ -113,13 +113,20 @@ namespace SalesExporter.Start
 
             var bigClient = new Client()
             {
-                Name = "Some big client"
+                Name = "Rich client"
             };
 
             var specialProduct = new Product()
             {
                 Name = "Fancy something",
                 Price = 1M,
+                Quantity = 1000
+            };
+
+            var specialProduct2 = new Product()
+            {
+                Name = "Other fancy thing",
+                Price = 13M,
                 Quantity = 1000
             };
 
@@ -130,10 +137,17 @@ namespace SalesExporter.Start
                 Price = 2M
             };
 
+            var soldProduct2 = new SaleProduct()
+            {
+                Product = specialProduct2,
+                Count = 2,
+                Price = 26M
+            };
+
             var firstSale = new Sale()
             {
                 Client = bigClient,
-                SaleProducts = new List<SaleProduct>() { soldProduct },
+                SaleProducts = new List<SaleProduct>() { soldProduct, soldProduct2 },
                 TotalPrice = 2M
             };
 
