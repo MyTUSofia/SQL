@@ -30,10 +30,12 @@ namespace SalesExporter.Start
         {
             Database.SetInitializer(new MigrateDatabaseToLatestVersion<SalesExporterDbContext, Configuration>());
 
-            var db = new SalesExporterDbContext();
-            db.Database.CreateIfNotExists();
-
-            PrepareExport(db, null);
+            // ThreadSafety via different instance of EF
+            using (var db = new SalesExporterDbContext())
+            {
+                db.Database.CreateIfNotExists();
+                PrepareExport(db, null);
+            }
         }
 
         public static void PrepareExport(SalesExporterDbContext context, DateTime? exportDate)
